@@ -21,6 +21,7 @@ def save_csv(layers,csv_save_path='/tmp/analyse.csv',
     sum=[0]*len(save_items)
     for layer in layers:
         print_line=[]
+        count = True
         for idx,param in enumerate(save_items):
             item=getattr(layer, param)
             if type(item)==list:
@@ -29,6 +30,9 @@ def save_csv(layers,csv_save_path='/tmp/analyse.csv',
                     s+=' '+str(i)
             else:
                 s=str(item)
+                if count:
+                    s = [s,' ']
+                    count = False
                 if "=" in s:
                     s=s.split(",")
                     s=[x[x.find("=")+1:] for x in s]
@@ -43,6 +47,9 @@ def save_csv(layers,csv_save_path='/tmp/analyse.csv',
                 print_line.extend(s)
             else:
                 print_line.append(s)
+        if print_line[2]=='None':
+            print_line.insert(3, "None")
+            print_line.insert(4, "None")
         print_list.append(print_line)
     if print_detail:
         sum[0] = 'SUM'
@@ -57,7 +64,7 @@ def save_csv(layers,csv_save_path='/tmp/analyse.csv',
                 else:
                     print_list.append('%s:%.3e'%(save_items[idx],item))
         print(print_list)
-    new_file_header = ('name', 'kernel', 'stride','padding','output channels', 'input # per Batch','input channels','input height', 'input width','output # per batch','output channels','output height','output width', 'dot', 'add', 'compare','ops', 'weight_size','activation_size')
+    new_file_header = ('name', 'MCM support status', 'kernel', 'stride','padding','output channels', 'input # per Batch','input channels','input height', 'input width','output # per batch','output channels','output height','output width', 'dot', 'add', 'compare','ops', 'weight_size','activation_size')
     if csv_save_path!=None:
         with open(csv_save_path,'w') as file:
             writer=csv.writer(file)
@@ -93,7 +100,7 @@ def print_table(datas,names):
     for l in datas:
         s=''
         for i,t in zip(l,types):
-            if t=='I':
+            if t=='I' and type(i)==int:
 
                 i=int(float(i))
                 s+=('%.1E'%i).center(10)

@@ -18,11 +18,40 @@ def profiling(net, input=None):
             if layer.type == 'Convolution':
                 param = layer.convolution_param
                 ksize = param.kernel_size
-                ksize = [7,7]
-                print(ksize, type(ksize))
-                y = type(ksize)
-                out = Conv(blob_dict[layer.bottom[0]], [param.kernel_size[0], param.kernel_size[0]], param.num_output, param.stride,
-                             param.pad, None, layer.name, group_size=param.group)
+                if len(ksize) == 0:
+                    kh = param.kernel_h
+                    kw = param.kernel_w
+                else:
+                    kh = param.kernel_size[0]
+                    kw = kh
+                if len(param.pad)==0: 
+                    ph = param.pad_h
+                    pw = param.pad_w
+                else:
+                    ph = param.pad[0]
+                    pw = ph
+                if len(param.stride)==0 and not(param.stride_h ==0 and param.stride_w==0):
+                    sh = param.stride_h
+                    sw = param.stride_w
+                elif len(param.stride)!=0:
+                    sh = param.stride[0]
+                    sw = sh
+                else:
+                    sh = 1
+                    sw = 1
+                print("_________________________________________________________________________")
+                print("kernel size type: ", type(param.kernel_size))
+                print("_________________________________________________________________________")
+                print("pad size type: ", type(param.pad))
+                print("_________________________________________________________________________")
+                print("stride size type: ", type(param.stride))
+                print("_________________________________________________________________________")
+                #try:
+                   # out = Conv(blob_dict[layer.bottom[0]], [param.kernel_size[0], param.kernel_size[0]], param.num_output, param.stride,
+                out = Conv(blob_dict[layer.bottom[0]], [kh, kw], param.num_output, [sh, sw],
+                             [ph, pw], None, layer.name, group_size=param.group)
+                #except:
+                #    print(ksize, type(ksize))
             if layer.type == 'InnerProduct':
                 param=layer.inner_product_param
                 out= fc(blob_dict[layer.bottom[0]],param.num_output,None,layer.name)
