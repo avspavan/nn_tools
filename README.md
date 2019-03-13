@@ -1,3 +1,4 @@
+#Bug to be fixed: multiple outputs/inputs from a layer are not parsed correctly into the csv file. Not a priority now. - Pavan
 # Neural Network Tools: Converter, Constructor and Analyser
 
  Providing a tool for some fashion neural network frameworks.
