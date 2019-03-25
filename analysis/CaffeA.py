@@ -62,7 +62,7 @@ def profiling(net, input=None):
             if layer.type == 'Pooling':
                 param = layer.pooling_param
                 out = Pool(blob_dict[layer.bottom[0]], param.kernel_size, param.stride,
-                             param.pad, layer.name,param.pool,ceil=True)
+                             param.pad, layer.name,param.pool, ceil=True)
             if layer.type == 'Normalize':
                 out = Norm(blob_dict[layer.bottom[0]], 'norm', layer.name)
             if layer.type == 'BatchNorm':

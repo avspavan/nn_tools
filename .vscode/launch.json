@@ -10,6 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/caffe_analyser.py",
             "args": ["~/movidius/networks_layers/squeezenet_deploy.prototxt", "squeezenet_result.csv", "1,3,227,227"],
+            "pythonPath": "${config:python.pythonPath}",
             "console": "integratedTerminal"
         },
         {

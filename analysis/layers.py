@@ -86,6 +86,7 @@ class Activation(Base):
         Base.__init__(self,input,name=name)
         getattr(self,type)()
         self.out=self.input.new(self)
+        self.type = 'Activation'
 
     def relu(self):
         self.compare=self.input_size
@@ -183,6 +184,15 @@ class Conv(Sliding):
         self.layer_info+=',num_out=%d'%(num_out)
         self.dot = np.prod(self.out.shape) * np.prod(self.kernel_size) * self.in_channel
         self.weight_size = np.prod(self.kernel_size) * num_out * self.in_channel
+        self.type = 'Conv'
+        self.bias_term=bias_term
+        self.weight_filler.type=weight_filler_type
+        if self.bias_term:
+            self.bias_filler.type = bias_filler_type
+        if self.dilation:
+            self.dilation.extend(pair_reduce(dilation))
+        if self.groups:
+            self.group=groups
         if group_size!=1:
             self.layer_info += ',group_size=%d' % (group_size)
             self.dot /= group_size
@@ -201,9 +211,11 @@ class Pool(Sliding):
         self.layer_info+=',type=%s'%(pool_type)
         if pool_type in ['max',0]:
             self.compare= np.prod(self.out.shape) * (np.prod(self.kernel_size) - 1)
+            self.type = 'Max Pool'
         elif pool_type in ['avg','ave',1]:
             self.add = np.prod(self.input.shape)
             self.dot = np.prod(self.out.shape)
+            self.type = 'Avg Pool'
         else:
             print("WARNING, NOT IMPLEMENT POOL TYPE %s PROFILING at %s, CONTINUE"%(pool_type,name))
 pool=Pool
@@ -219,6 +231,7 @@ class InnerProduct(Base):
         self.add=self.num_out*self.input_size
         self.out=Blob([input[0],self.num_out],self)
         self.weight_size = self.num_out * self.left_dim
+        self.type = 'FC'
         if activation:
             Activation(self.out,activation)
 Fc=InnerProduct
@@ -228,12 +241,14 @@ class Permute(Base):
     def __init__(self, input,dims, name='permute'):
         super(Permute,self).__init__(input,name)
         self.out = Blob(dims,self)
+        self.type = 'permute'
 
 class Flatten(Base):
     def __init__(self,input, name='permute'):
         super(Flatten, self).__init__(input, name)
         dim=[np.prod(input.shape)]
         self.out = Blob(dim, self)
+        self.type = 'Flatten'
 
 class Eltwise(Base):
     def __init__(self,inputs,type='sum',name='eltwise'):
@@ -241,10 +256,13 @@ class Eltwise(Base):
         self.out=inputs[0].new(self)
         if type in ['sum','SUM']:
             self.add=np.prod(self.out.shape)
+            self.type = 'Eltwise Sum'
         elif type in ['product','PROD']:
             self.dot=np.prod(self.out.shape)
+            self.type = 'Eltwise prod'
         elif type in ['max','MAX']:
             self.compare=np.prod(self.out.shape)
+            self.type = 'Eltwise Max'
         else:
             raise AttributeError('the Eltwise layer type must be sum, max or product')
 
@@ -263,6 +281,7 @@ class Slice(Base):
         print(last,shape1,input.shape[axis])
         shape1[axis] = input.shape[axis] - last
         self.out += [Blob(shape1)]
+        self.type = 'Slice'
 
 class Reshape(Base):
     def __init__(self,input,shape,name='reshape'):
@@ -272,6 +291,7 @@ class Reshape(Base):
             if shape[i]==0:
                 shape[i]=input.shape[i]
         self.out=Blob(shape)
+        self.type = 'Reshape'
 
 
 class Concat(Base):
@@ -282,6 +302,7 @@ class Concat(Base):
             outc+=input[axis]
         self.out=Blob(inputs[0].shape,self)
         self.out.shape[axis]=outc
+        self.type = 'Concat'
 
 class Scale(Base):
     def __init__(self, input, factor=None, name='scale'):
@@ -289,6 +310,7 @@ class Scale(Base):
         self.out = input.new(self)
 
         self.dot=self.input_size
+        self.type = 'Scale'
         # TODO scale analysis
 
 class Softmax(Base):
@@ -299,6 +321,7 @@ class Softmax(Base):
         self.add=self.input_size
         self.dot=self.input_size
         self.layer_info="softmax"
+        self.type = 'Softmax'
 
 class Dropout(Base):
     def __init__(self,input,name='dropout'):
@@ -306,3 +329,4 @@ class Dropout(Base):
             input=input()
         Base.__init__(self,input,name=name)
         self.out = input.new(self)
+        self.type = 'Dropout'

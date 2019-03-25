@@ -50,6 +50,7 @@ def save_csv(layers,csv_save_path='/tmp/analyse.csv',
         if print_line[2]=='None':
             print_line.insert(3, "None")
             print_line.insert(4, "None")
+        print_line.append(layer.type)
         print_list.append(print_line)
     if print_detail:
         sum[0] = 'SUM'
@@ -64,7 +65,7 @@ def save_csv(layers,csv_save_path='/tmp/analyse.csv',
                 else:
                     print_list.append('%s:%.3e'%(save_items[idx],item))
         print(print_list)
-    new_file_header = ('name', 'MCM support status', 'kernel', 'stride','padding','output channels', 'input # per Batch','input channels','input height', 'input width','output # per batch','output channels','output height','output width', 'dot', 'add', 'compare','ops', 'weight_size','activation_size')
+    new_file_header = ('name', 'MCM support status', 'kernel', 'stride','padding','output channels', 'input # per Batch','input channels','input height', 'input width','output # per batch','output channels','output height','output width', 'dot', 'add', 'compare','ops', 'weight_size','activation_size', 'type')
     if csv_save_path!=None:
         with open(csv_save_path,'w') as file:
             writer=csv.writer(file)
@@ -123,7 +124,7 @@ def print_table(datas,names):
         s += '|'
     print(s)
 
-def print_by_blob(blobs,print_items=('name', 'layer_info', 'input', 'out', 'dot', 'add', 'compare','ops', 'weight_size','activation_size')):
+def print_by_blob(blobs,print_items=('name', 'layer_info', 'input', 'out', 'dot', 'add', 'compare','ops', 'weight_size','activation_size', 'type')):
     layers=get_layer_blox_from_blobs(blobs)
     print_list = []
     for layer in layers:
